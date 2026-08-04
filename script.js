@@ -43,74 +43,44 @@
   });
 
   /* ---------- hero word rotator ----------
-     Cross-fades stacked words and animates the container width to match.
-     No overflow clipping involved, so the compositor can't paint two at once. */
+     One <b> in the DOM whose text is swapped. The container reserves the width
+     of the WIDEST word, so the headline's line length is identical no matter
+     which word is showing and can never reflow onto another line mid-cycle. */
   var rot = document.getElementById('rotator');
   if (rot) {
-    var words = [].slice.call(rot.children);
+    var word = rot.querySelector('b');
+    var list = (rot.getAttribute('data-words') || word.textContent).split('|');
 
-    var fit = function () {
-      var on = rot.querySelector('.is-on') || words[0];
-      rot.style.width = on.offsetWidth + 'px';
+    // Measure every word and reserve the widest. Re-run on resize and once the
+    // webfont lands, because both change the metrics.
+    var reserve = function () {
+      var original = word.textContent;
+      rot.style.minWidth = '0px';
+      var max = 0;
+      for (var n = 0; n < list.length; n++) {
+        word.textContent = list[n];
+        if (word.offsetWidth > max) max = word.offsetWidth;
+      }
+      word.textContent = original;
+      // ceil avoids a sub-pixel shortfall tipping the line over
+      rot.style.minWidth = Math.ceil(max) + 1 + 'px';
     };
 
-    // width has to be set before the first paint or the headline reflows visibly
-    fit();
-    window.addEventListener('resize', fit);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    reserve();
+    window.addEventListener('resize', reserve);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(reserve);
 
-    if (!reduced && words.length > 1) {
+    if (!reduced && list.length > 1) {
       var i = 0;
       setInterval(function () {
-        words[i].classList.remove('is-on');
-        i = (i + 1) % words.length;
-        words[i].classList.add('is-on');
-        fit();
-      }, 2400);
+        i = (i + 1) % list.length;
+        rot.classList.add('is-swapping');
+        setTimeout(function () {
+          word.textContent = list[i];
+          rot.classList.remove('is-swapping');
+        }, 220);
+      }, 2600);
     }
-  }
-
-  /* ---------- scroll reveals + counters + gauge ---------- */
-  var countUp = function (el) {
-    var target = parseFloat(el.getAttribute('data-count'));
-    if (reduced) { el.textContent = target; return; }
-    var start = performance.now();
-    var dur = 1400;
-    var tick = function (now) {
-      var p = Math.min((now - start) / dur, 1);
-      var eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(target * eased);
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  };
-
-  var revealables = document.querySelectorAll('.reveal');
-
-  var show = function (el) {
-    if (el.classList.contains('is-in')) return;
-    el.classList.add('is-in');
-    el.querySelectorAll('[data-count]').forEach(countUp);
-  };
-
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        show(entry.target);
-        io.unobserve(entry.target);
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    revealables.forEach(function (el) { io.observe(el); });
-
-    // Failsafe: if the observer never fires (background tab, odd engine),
-    // nothing must stay invisible. Reveal everything after 2.5s.
-    setTimeout(function () {
-      if (document.querySelectorAll('.reveal.is-in').length) return;
-      revealables.forEach(show);
-    }, 2500);
-  } else {
-    revealables.forEach(show);
   }
 
   /* ---------- floating hero mockups (parallax) ---------- */

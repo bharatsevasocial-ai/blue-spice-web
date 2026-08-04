@@ -181,18 +181,17 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
 .hero__title{margin:28px 0 0;font-size:clamp(38px,10.4vw,58px);font-weight:800;letter-spacing:-.045em}
 .hero__title .line{display:block}
 
-/* Words are stacked and cross-faded in place: no overflow clipping anywhere.
-   The old version slid a column behind overflow:hidden, which the compositor
-   could promote out of the clip and paint two words at once. */
-.rotator{position:relative;display:inline-block;vertical-align:bottom;
-  height:1em;margin-left:.26em;
-  transition:width .55s cubic-bezier(.76,0,.24,1)}
-.rotator b{position:absolute;left:0;bottom:0;white-space:nowrap;font-weight:800;line-height:1;
-  opacity:0;transform:translateY(.26em);
-  transition:opacity .4s ease,transform .55s cubic-bezier(.76,0,.24,1);
+/* One word in the DOM, swapped by JS. Two guarantees:
+   1. min-width is reserved for the WIDEST word (set once by JS), so the line
+      length never changes as words cycle and the headline can never reflow.
+   2. Only one word exists, so with no CSS or no JS it still renders correctly
+      instead of printing every word inline. */
+.rotator{display:inline-block;margin-left:.26em;white-space:nowrap;text-align:left}
+.rotator b{font-weight:800;white-space:nowrap;
+  transition:opacity .22s linear;
   background:linear-gradient(100deg,var(--blue),var(--violet) 38%,var(--magenta) 70%,var(--saffron));
   -webkit-background-clip:text;background-clip:text;color:transparent}
-.rotator b.is-on{opacity:1;transform:none}
+.rotator.is-swapping b{opacity:0}
 
 .hero__sub{margin-top:32px;font-size:16.5px;color:var(--muted);max-width:44ch}
 .hero__cta{margin-top:38px;display:flex;flex-direction:column;gap:12px}
@@ -349,9 +348,9 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
 .gauge svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
 .gauge circle{fill:none;stroke-width:9;stroke-linecap:round}
 .gauge__track{stroke:rgba(255,255,255,.14)}
-.gauge__fill{stroke:url(#g);stroke:var(--teal);stroke-dasharray:314;stroke-dashoffset:314;
-  transition:stroke-dashoffset 1.6s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 0 8px rgba(0,201,167,.7))}
-.is-in .gauge__fill{stroke-dashoffset:38}
+/* drawn at its final value, no scroll-triggered animation */
+.gauge__fill{stroke:var(--teal);stroke-dasharray:314;stroke-dashoffset:38;
+  filter:drop-shadow(0 0 8px rgba(0,201,167,.7))}
 .gauge__val{text-align:center;line-height:1}
 .gauge__val strong{font-size:32px;font-weight:800;letter-spacing:-.05em}
 .gauge__val small{display:block;margin-top:5px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-light)}
@@ -451,16 +450,8 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
 .wa:hover{transform:scale(1.09)}
 .wa svg{width:28px;height:28px;fill:#fff}
 
-/* ============================================================
-   REVEAL ANIMATION
-   ============================================================ */
-.reveal{opacity:0;transform:translateY(22px);
-  transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1)}
-.reveal.is-in{opacity:1;transform:none}
-.reveal[data-d="1"]{transition-delay:.09s}
-.reveal[data-d="2"]{transition-delay:.18s}
-.reveal[data-d="3"]{transition-delay:.27s}
-.reveal[data-d="4"]{transition-delay:.36s}
+/* Scroll-reveal animations removed. Content is visible on arrival and never
+   depends on JS or IntersectionObserver to be readable. */
 
 /* ============================================================
    BREAKPOINTS
