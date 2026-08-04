@@ -42,15 +42,32 @@
     if (e.matches) setMenu(false);
   });
 
-  /* ---------- hero word rotator ---------- */
+  /* ---------- hero word rotator ----------
+     Cross-fades stacked words and animates the container width to match.
+     No overflow clipping involved, so the compositor can't paint two at once. */
   var rot = document.getElementById('rotator');
-  if (rot && !reduced) {
-    var words = rot.children.length;
-    var i = 0;
-    setInterval(function () {
-      i = (i + 1) % words;
-      rot.style.transform = 'translateY(-' + (i * (100 / words)) + '%)';
-    }, 2200);
+  if (rot) {
+    var words = [].slice.call(rot.children);
+
+    var fit = function () {
+      var on = rot.querySelector('.is-on') || words[0];
+      rot.style.width = on.offsetWidth + 'px';
+    };
+
+    // width has to be set before the first paint or the headline reflows visibly
+    fit();
+    window.addEventListener('resize', fit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
+    if (!reduced && words.length > 1) {
+      var i = 0;
+      setInterval(function () {
+        words[i].classList.remove('is-on');
+        i = (i + 1) % words.length;
+        words[i].classList.add('is-on');
+        fit();
+      }, 2400);
+    }
   }
 
   /* ---------- scroll reveals + counters + gauge ---------- */
@@ -145,10 +162,12 @@
       cursor.classList.add('is-on');
     }, { passive: true });
 
+    // slower lerp so the ring trails the pointer instead of sticking to it
     (function cursorLoop() {
-      cxp += (tx - cxp) * 0.2;
-      cyp += (ty - cyp) * 0.2;
-      cursor.style.transform = 'translate3d(' + (cxp - 13) + 'px,' + (cyp - 13) + 'px,0)';
+      cxp += (tx - cxp) * 0.14;
+      cyp += (ty - cyp) * 0.14;
+      var r = cursor.offsetWidth / 2;
+      cursor.style.transform = 'translate3d(' + (cxp - r) + 'px,' + (cyp - r) + 'px,0)';
       requestAnimationFrame(cursorLoop);
     })();
 

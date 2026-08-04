@@ -101,12 +101,12 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
   font-family:var(--ff);font-size:15px;font-weight:600;letter-spacing:-.01em;
   cursor:pointer;position:relative;overflow:hidden;
   transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s,color .25s;
-  box-shadow:0 10px 24px -12px rgba(10,10,26,.6);
+  box-shadow:none;
 }
 .btn::before{content:"";position:absolute;inset:0;z-index:0;opacity:0;transition:opacity .3s;
   background:linear-gradient(100deg,var(--blue),var(--violet) 45%,var(--magenta))}
 .btn>*{position:relative;z-index:1}
-.btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px -14px rgba(27,77,255,.7)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px -16px rgba(27,77,255,.55)}
 .btn:hover::before{opacity:1}
 .btn:active{transform:translateY(0)}
 .btn__arrow{display:inline-block;transition:transform .3s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1}
@@ -164,29 +164,50 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
 .hero{position:relative;padding:118px 0 56px;overflow:hidden}
 .hero__inner{position:relative;z-index:2}
 
-.eyebrow{display:inline-flex;align-items:center;gap:9px;
-  font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
-  background:rgba(255,255,255,.7);border:1px solid var(--line);
-  padding:7px 15px 7px 12px;border-radius:999px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);flex-shrink:0;
+/* bare label, not a UI chip: reads as editorial rather than dashboard */
+.eyebrow{display:inline-flex;align-items:center;gap:11px;
+  font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;
   box-shadow:0 0 0 0 rgba(0,201,167,.6);animation:pulse 2.4s infinite}
-.eyebrow--light{color:var(--muted-light);background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16)}
+.eyebrow--light{color:var(--muted-light)}
+/* hairline trailing the hero label, like a rule on a plan drawing.
+   Desktop only: at 375px it pushes the label onto a second line. */
+@media (min-width:900px){
+  .hero .eyebrow::after{content:"";width:72px;height:1px;flex-shrink:0;
+    background:linear-gradient(90deg,rgba(10,10,26,.34),transparent)}
+}
 @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(0,201,167,0)}100%{box-shadow:0 0 0 0 rgba(0,201,167,0)}}
 
-.hero__title{margin:22px 0 0;font-size:clamp(38px,10.4vw,58px);font-weight:800;letter-spacing:-.045em}
+.hero__title{margin:28px 0 0;font-size:clamp(38px,10.4vw,58px);font-weight:800;letter-spacing:-.045em}
 .hero__title .line{display:block}
 
-.rotator{display:inline-block;height:1.06em;overflow:hidden;vertical-align:bottom;position:relative;top:.06em}
-.rotator__inner{display:flex;flex-direction:column;transition:transform .72s cubic-bezier(.76,0,.24,1)}
-.rotator b{display:block;height:1.06em;line-height:1.06em;font-weight:800;white-space:nowrap;
+/* Words are stacked and cross-faded in place: no overflow clipping anywhere.
+   The old version slid a column behind overflow:hidden, which the compositor
+   could promote out of the clip and paint two words at once. */
+.rotator{position:relative;display:inline-block;vertical-align:bottom;
+  height:1em;margin-left:.26em;
+  transition:width .55s cubic-bezier(.76,0,.24,1)}
+.rotator b{position:absolute;left:0;bottom:0;white-space:nowrap;font-weight:800;line-height:1;
+  opacity:0;transform:translateY(.26em);
+  transition:opacity .4s ease,transform .55s cubic-bezier(.76,0,.24,1);
   background:linear-gradient(100deg,var(--blue),var(--violet) 38%,var(--magenta) 70%,var(--saffron));
   -webkit-background-clip:text;background-clip:text;color:transparent}
+.rotator b.is-on{opacity:1;transform:none}
 
-.hero__sub{margin-top:22px;font-size:16.5px;color:var(--muted);max-width:56ch}
-.hero__cta{margin-top:30px;display:flex;flex-direction:column;gap:12px}
+.hero__sub{margin-top:32px;font-size:16.5px;color:var(--muted);max-width:44ch}
+.hero__cta{margin-top:38px;display:flex;flex-direction:column;gap:12px}
 
 /* floating CSS mockups */
 .hero__art{position:relative;margin-top:52px;height:290px;z-index:1}
+/* soft disc behind the cluster so three cards read as one composition
+   instead of three things that happen to be near each other */
+.hero__art::before{content:"";position:absolute;left:50%;top:50%;
+  width:112%;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;z-index:-1;
+  background:radial-gradient(circle at 42% 38%,rgba(27,77,255,.13),rgba(255,46,136,.10) 46%,transparent 68%)}
+.hero__art::after{content:"";position:absolute;left:50%;top:50%;
+  width:78%;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;z-index:-1;border:1px solid rgba(10,10,26,.07)}
 .mock,.phone{position:absolute;border-radius:16px;background:rgba(255,255,255,.86);
   border:1px solid rgba(255,255,255,.9);box-shadow:var(--shadow-lg);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow:hidden;will-change:transform}
@@ -217,7 +238,8 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
 .g4{background:linear-gradient(120deg,var(--saffron),#FFD166)}
 .g5{background:linear-gradient(120deg,var(--violet),var(--magenta))}
 
-.scroll-cue{display:none}
+/* vertical edge rails (desktop only, added in the 1100px block) */
+.rail{display:none}
 
 /* ============================================================
    TICKER
@@ -225,8 +247,8 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
 .ticker{overflow:hidden;padding:15px 0;border-block:1px solid var(--line);
   background:linear-gradient(100deg,var(--blue),var(--violet) 42%,var(--magenta) 74%,var(--saffron));color:#fff}
 .ticker__track{display:flex;align-items:center;gap:22px;width:max-content;animation:slide 42s linear infinite}
-.ticker span{font-size:14px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
-.ticker b{font-size:10px;opacity:.72}
+.ticker span{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
+.ticker b{font-size:9px;opacity:.6}
 @keyframes slide{to{transform:translateX(-50%)}}
 
 /* ============================================================
@@ -473,22 +495,30 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
      The heavier bottom padding lifts the block off the vertical centre so it
      doesn't sit marooned in the middle of a tall viewport. */
   .hero{padding:78px 0 150px;min-height:100svh;display:flex;align-items:center}
-  .hero__inner{max-width:none}
+  /* Two real columns. The art used to be absolutely positioned, which let the
+     headline run underneath it at wide viewports. A grid track can't overlap. */
   .hero .wrap{width:100%}
-  .hero__title{font-size:clamp(56px,6.4vw,86px);max-width:15ch}
-  .hero__sub{font-size:18px}
-  /* centre of the padded box, so art and text share one centre line:
-     78px + (100% - 78px - 150px) / 2  ==  calc(50% - 36px) */
-  .hero__art{position:absolute;right:max(24px,calc(50vw - 600px + 24px));top:calc(50% - 36px);
-    transform:translateY(-50%);width:440px;height:430px;margin:0}
-  .mock--a{width:330px;left:0;top:0}
-  .mock--b{width:270px;right:-10px;top:150px}
-  .phone{right:150px;bottom:-30px;width:128px;height:224px}
+  .hero__inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);
+    gap:60px;align-items:center}
+  .hero__title{font-size:clamp(46px,4.4vw,66px);margin-top:32px}
+  .hero__sub{font-size:17.5px;margin-top:34px;max-width:40ch}
+  .hero__cta{margin-top:42px}
+  .hero__art{position:relative;width:100%;height:430px;margin:0}
+  .mock--a{width:300px;left:0;top:0}
+  .mock--b{width:250px;right:-6px;top:150px}
+  .phone{right:126px;bottom:-24px;width:122px;height:214px}
 
-  .scroll-cue{display:flex;position:absolute;left:var(--pad);bottom:36px;align-items:center;gap:10px;
-    font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-  .scroll-cue i{width:1px;height:38px;background:linear-gradient(var(--blue),transparent);position:relative;overflow:hidden}
-  .scroll-cue i::after{content:"";position:absolute;inset:0;background:var(--magenta);animation:cue 1.9s ease-in-out infinite}
+  /* ---- edge rails: vertical type pinned to the viewport edges ---- */
+  .rail{display:flex;position:absolute;bottom:44px;align-items:center;gap:14px;
+    font-size:10.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--muted);white-space:nowrap}
+  .rail--left{left:26px;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.18em}
+  .rail--right{right:26px;writing-mode:vertical-rl;transition:color .3s}
+  .rail--right:hover{color:var(--ink)}
+  .rail--right i{width:1px;height:56px;background:linear-gradient(var(--line),transparent);
+    position:relative;overflow:hidden}
+  .rail--right i::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(var(--blue),var(--magenta));animation:cue 2.1s ease-in-out infinite}
   @keyframes cue{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
 
   .cards{grid-template-columns:repeat(3,1fr);gap:20px}
@@ -509,18 +539,27 @@ em{font-family:var(--fs);font-style:italic;font-weight:400;letter-spacing:-.01em
   .wa{right:26px;bottom:26px;width:58px;height:58px}
   .wa svg{width:31px;height:31px}
 
-  /* custom cursor */
-  .cursor{display:block;position:fixed;top:0;left:0;width:26px;height:26px;border-radius:50%;z-index:9999;
-    pointer-events:none;mix-blend-mode:difference;background:#fff;opacity:0;
-    transition:opacity .3s,width .25s,height .25s;will-change:transform}
-  .cursor.is-on{opacity:.9}
-  .cursor.is-big{width:58px;height:58px}
+  /* custom cursor: precise dot + a ring that lags behind it.
+     A solid disc smeared over the headline; an outline reads as an instrument. */
+  .cursor{display:block;position:fixed;top:0;left:0;width:36px;height:36px;border-radius:50%;
+    z-index:9999;pointer-events:none;opacity:0;
+    /* difference blend keeps it visible on both the white and the ink sections */
+    mix-blend-mode:difference;border:1.5px solid rgba(255,255,255,.9);
+    transition:opacity .35s,width .3s cubic-bezier(.2,.8,.2,1),height .3s cubic-bezier(.2,.8,.2,1),
+      border-color .3s,background .3s;
+    will-change:transform}
+  .cursor::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;
+    margin:-2px 0 0 -2px;border-radius:50%;background:#fff;transition:opacity .3s}
+  .cursor.is-on{opacity:1}
+  .cursor.is-big{width:64px;height:64px;border-color:transparent;background:rgba(255,255,255,.22)}
+  .cursor.is-big::after{opacity:0}
 }
 
 @media (min-width:1100px){
-  .hero__art{width:520px;height:470px}
-  .mock--a{width:380px}
-  .mock--b{width:300px;top:170px}
+  .hero__inner{grid-template-columns:minmax(0,1fr) minmax(0,480px);gap:72px}
+  .hero__art{height:470px}
+  .mock--a{width:340px}
+  .mock--b{width:280px;top:170px}
 }
 
 /* ============================================================
